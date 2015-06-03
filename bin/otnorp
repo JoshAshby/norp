@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+require 'otnorp'
+
+require 'otnorp/cli'
+
+Otnorp::CLI.start
