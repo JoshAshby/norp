@@ -1,6 +1,6 @@
 require 'thor'
 
-module Otnorp
+module Norp
   class CLI < Thor
 
 
