@@ -8,6 +8,10 @@ module Norp
         @path = path
       end
 
+      def == other
+        @path == other.path
+      end
+
     end
 
   end
