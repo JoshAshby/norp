@@ -5,8 +5,6 @@ require 'norp/version'
 
 require 'norp/base'
 
-require 'norp/wrappers/file'
-
 module Norp
   extend Norp::Base
 end
