@@ -5,55 +5,60 @@ require 'norp/wrappers/file'
 module Norp
   module Wrappers
     class Git
-      attr_accessor :repo
+      attr_accessor :repo, :files
 
       def initialize path: '.'
         @repo = Rugged::Repository.new '.'
       end
 
-      def files_changed_since commit: nil, branch: nil
-        fail ArgumentError, "Need a branch name or commit hash to work" unless commit || branch
-
+      def files_changed_since sha: nil, branch: nil
         if branch
-          branch_ref = @repo.branches[branch]
-          commit = branch_ref.target
+          commit = branch_commit branch
+        else
+          commit = lookup_commit sha
         end
 
-        commit = @repo.lookup(commit) if commit.kind_of? String
+        diff = @repo.index.diff commit
 
-        paths = []
+        files_from_diff diff
+      end
 
-        walker = Rugged::Walker.new @repo
-
-        # Rugged docs says this is optional, but really I have no clue what I'm
-        # doing...
-        walker.sorting Rugged::SORT_TOPO | Rugged::SORT_REVERSE
-
-        # Hide anything under this commit, to ensure we're working only on the
-        # commits we care about and not the whole damn repo
-        walker.hide commit
-
-        walker.each do |commit|
-          # Skip if a merge commit since we don't care about those changes
-          next if commit.parents.count != 1
-
-          paths.concat paths_from_diff commit.parents[0].diff(commit)
-        end
-
-        # Make sure to include the diffs from staging too...
-        paths.concat paths_from_diff @repo.index.diff
-
-        paths.uniq.map{ |p| Norp::Wrappers::File.new path: p }
+      def inspect
+        "<Norp::Wrappers::Git:#{object_id} repo=#{@repo.path}>"
       end
 
       private
 
-      def paths_from_diff diff
+      def branch_commit branch
+        @repo.branches[branch].target
+      end
+
+      def lookup_commit sha
+        return sha if sha.kind_of? Rugged::Commit
+
+        @repo.lookup sha
+      end
+
+      def files_from_diff diff
+        files = []
+
         diff.find_similar!
 
-        diff.each_delta
-          .select{ |delta| [ :modified, :added, :renamed ].include? delta.status }
-          .map{ |delta| delta.new_file[:path] }
+        diff.each_patch
+          .select{ |patch| [ :modified, :added, :renamed ].include? patch.delta.status }
+          .each do |patch|
+            file_path = patch.delta.new_file[:path]
+
+            lines = patch.hunks.map do |hunk|
+              hunk.lines
+                .reject{ |line| [ :context, :deletion ].include? line.line_origin }
+                .map{ |line| line.content }
+            end.flatten
+
+            files << Norp::Wrappers::File.new(path: file_path, lines: lines, patch: patch)
+          end
+
+        files
       end
 
     end

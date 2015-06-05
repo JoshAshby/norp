@@ -1,11 +1,15 @@
+require 'norp/wrappers/message'
+
 module Norp
   module Wrappers
 
     class File
-      attr_accessor :path, :commits
+      attr_accessor :path, :lines, :patch, :messages
 
-      def initialize path:, commits: []
-        @path, @commits = path, Array(commits)
+      def initialize path:, lines: [], patch: nil
+        @path, @lines, @patch = path, Array(lines), patch
+
+        @messages = []
       end
 
       def contents
@@ -23,6 +27,14 @@ module Norp
 
       def ext
         @ext ||= ::File.extname @path
+      end
+
+      def add_message body, level: :info, line: nil
+        @messages << Norp::Wrappers::Message.new(body, level: level, line: line)
+      end
+
+      def inspect
+        "<Norp::Wrappers::File:#{object_id} path=#{@path}, lines=\n#{@lines.join(' ')}, messages=#{@messages}, patch=#{@patch}>"
       end
 
     end

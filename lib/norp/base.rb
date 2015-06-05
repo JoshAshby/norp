@@ -1,15 +1,21 @@
 require 'norp/wrappers/git'
+require 'norp/formatters/base'
+require 'norp/runners/base'
 
 module Norp
   module Base
 
-    def run branch: 'master', formatter: :text
-      @repo = Norp::Git.new path: '.'
+    def run formatter:, branch: 'master', runners: []
+      @repo = Norp::Wrappers::Git.new path: '.'
 
-      files = @repo.files_changed_since branch: branch
-      files.select!{ |f| %w| .rb |.include? f.ext }
+      files = @repo.files_changed_since(branch: branch)
+        .select{ |file| %w| .rb |.include? file.ext }
 
-      files
+      runners.each do |runner|
+        runner.new(files: files).run!
+      end
+
+      formatter.new(files: files).get_output
     end
 
   end
