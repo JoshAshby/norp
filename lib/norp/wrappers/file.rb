@@ -29,8 +29,8 @@ module Norp
         @ext ||= ::File.extname @path
       end
 
-      def add_message body, level: :info, line: nil
-        @messages << Norp::Wrappers::Message.new(body, level: level, line: line)
+      def add_message *args, **opts
+        @messages << Norp::Wrappers::Message.new(*args, **opts)
       end
 
       def inspect

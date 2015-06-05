@@ -11,6 +11,13 @@ module Norp
         @repo = Rugged::Repository.new '.'
       end
 
+      # Returns an array of Norp::Wrappers::File object representing all the
+      # changes since the commit sha or last commit in the given branch
+      #
+      # @param sha [String] commit sha or Rugged::Commit
+      # @param branch [String] name of the branch to use as the reference
+      #
+      # @return [Array] filled with Norp::Wrappers::File objects
       def files_changed_since sha: nil, branch: nil
         if branch
           commit = branch_commit branch
@@ -29,16 +36,26 @@ module Norp
 
       private
 
+      # Look up the last commit for the given branch
+      #
+      # @return [Rugged::Commit]
       def branch_commit branch
         @repo.branches[branch].target
       end
 
+      # @return [Rugged::Commit]
       def lookup_commit sha
         return sha if sha.kind_of? Rugged::Commit
 
         @repo.lookup sha
       end
 
+      # Builds an array of files, and their line changes from a given diff
+      # object
+      #
+      # @param diff [Rugged::Diff]
+      #
+      # @return [Array] array of Norp::Wrappers::File objects
       def files_from_diff diff
         files = []
 
