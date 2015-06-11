@@ -25,6 +25,10 @@ module Norp
         @path <=> other.path
       end
 
+      def eql? other
+        @path == other.path
+      end
+
       def ext
         @ext ||= ::File.extname @path
       end
@@ -34,7 +38,7 @@ module Norp
       end
 
       def inspect
-        "<Norp::Wrappers::File:#{object_id} path=#{@path}, lines=\n#{@lines.join(' ')}, messages=#{@messages}, patch=#{@patch}>"
+        "<Norp::Wrappers::File:#{object_id} path=#{@path}, lines=\n#{@lines.count}, messages=#{@messages}, patch=#{@patch}>"
       end
 
     end

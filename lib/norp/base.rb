@@ -21,7 +21,7 @@ module Norp
       @repo = Norp::Wrappers::Git.new path: '.'
 
       files = @repo.files_changed_since(branch: branch)
-        .select{ |file| %w| .rb |.include? file.ext }
+        .select{ |file| %w| .rb .rake .thor |.include? file.ext }
 
       if ignore_file
         ignore_file = Norp::IgnoreFile.new name: ignore_file

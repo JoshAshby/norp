@@ -59,8 +59,6 @@ module Norp
       def files_from_diff diff
         files = []
 
-        diff.find_similar!
-
         diff.each_patch
           .select{ |patch| [ :modified, :added, :renamed ].include? patch.delta.status }
           .each do |patch|
